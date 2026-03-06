@@ -3,6 +3,9 @@
 
 #include "FastGAS/Public/CC_BaseCharacter.h"
 
+#include "AbilitySystemComponent.h"
+#include "GameplayAbilitySpec.h"
+
 
 // Sets default values
 ACC_BaseCharacter::ACC_BaseCharacter()
@@ -12,6 +15,11 @@ ACC_BaseCharacter::ACC_BaseCharacter()
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 
+UAbilitySystemComponent* ACC_BaseCharacter::GetAbilitySystemComponent() const
+{
+	return nullptr;
+}
+
 // Called when the game starts or when spawned
 void ACC_BaseCharacter::BeginPlay()
 {
@@ -19,10 +27,18 @@ void ACC_BaseCharacter::BeginPlay()
 	
 }
 
-UAbilitySystemComponent* ACC_BaseCharacter::GetAbilitySystemComponent() const
+void ACC_BaseCharacter::GiveStartupAbilities()
 {
-	return nullptr;
+	if (!IsValid(GetAbilitySystemComponent())) return;
+	
+	for (const auto& Ability: StartupAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability);
+		GetAbilitySystemComponent()->GiveAbility(AbilitySpec);
+	}
 }
+
+
 
 
 

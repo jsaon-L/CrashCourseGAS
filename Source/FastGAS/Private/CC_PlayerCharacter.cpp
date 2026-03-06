@@ -52,12 +52,14 @@ UAbilitySystemComponent* ACC_PlayerCharacter::GetAbilitySystemComponent() const
 void ACC_PlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
 	
 	//这个函数在服务器被调用的时候,我们可以确定 PlayerState和Pawn都被正确实例化了,所以这个时机可以
 	//这个函数只在服务器调用,当这个pawn被控制了,可以初始化AbilitySystemComponent 拥有者和化身
-	if (!IsValid(GetAbilitySystemComponent())) return;
+	if (!IsValid(GetAbilitySystemComponent()) || !HasAuthority()) return;
 	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
+
+	//只在服务器授予能力就行,授予能力行为会自动进行网络同步,这个需要找文档仔细看看
+	GiveStartupAbilities();
 }
 
 void ACC_PlayerCharacter::OnRep_PlayerState()

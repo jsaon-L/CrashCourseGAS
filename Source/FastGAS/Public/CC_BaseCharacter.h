@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "CC_BaseCharacter.generated.h"
 
+class UGameplayAbility;
+
 UCLASS(Abstract)
 class FASTGAS_API ACC_BaseCharacter : public ACharacter,public IAbilitySystemInterface
 {
@@ -20,5 +22,11 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void GiveStartupAbilities();
+	
+private:
+	UPROPERTY(EditDefaultsOnly,Category = "CC|Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 };
