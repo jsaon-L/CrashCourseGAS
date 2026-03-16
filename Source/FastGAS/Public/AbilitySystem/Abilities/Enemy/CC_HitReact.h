@@ -13,4 +13,18 @@ UCLASS()
 class FASTGAS_API UCC_HitReact : public UCC_GameplayAbility
 {
 	GENERATED_BODY()
+
+	public:
+
+	UPROPERTY(BlueprintReadOnly,Category="CC|Ability")
+	FVector AvatarForward;
+	
+	UPROPERTY(BlueprintReadOnly,Category="CC|Ability")
+	FVector ToInstigator;
+
+
+	UFUNCTION(BlueprintCallable,Category="CC|Ability")
+	void CacheHitDirectionVectors(AActor* Instigator);
+	
+	
 };
