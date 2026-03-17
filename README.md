@@ -197,3 +197,63 @@ void UCC_AbilitySystemComponent::OnRep_ActivateAbilities()
 
 将GA的实例化策略改成 每Actor实例化,这样无论释放多少次技能,实际只存在一个GA实例.
 这样的话我们就可以在GA中保存变量或者使用Flip节点来播放不同的动画蒙太奇来播放不同的连招动画
+
+## 如何给一个Actor发送 GameplayEvent事件?
+
+```c++
+FGameplayEventData Payload;
+Payload.Instigator = GetAvatarActorFromActorInfo();
+UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(actor,CCTags::Events::Enemy::HitReact,Payload);
+```
+
+# Attribute
+## AttributeSet 创建一个血量 样板代码
+```c++
+//CC_AttributeSet.h
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
+#include "AttributeSet.h"
+#include "CC_AttributeSet.generated.h"
+
+#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+
+UCLASS()
+class FASTGAS_API UCC_AttributeSet : public UAttributeSet
+{
+	GENERATED_BODY()
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_Health)
+	FGameplayAttributeData Health;
+
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData OldValue);
+
+	ATTRIBUTE_ACCESSORS(ThisClass,Health);
+};
+```
+```c++
+//CC_AttributeSet.cpp
+#include "AbilitySystem/CC_AttributeSet.h"
+#include "Net/UnrealNetwork.h"
+
+void UCC_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	//网络复制
+	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, Health, COND_None, REPNOTIFY_Always);
+}
+
+void UCC_AttributeSet::OnRep_Health(const FGameplayAttributeData OldValue)
+{
+	//本地预测修改属性
+	GAMEPLAYATTRIBUTE_REPNOTIFY(ThisClass, Health, OldValue);
+}
+```
