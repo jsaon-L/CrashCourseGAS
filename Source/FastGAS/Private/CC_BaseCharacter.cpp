@@ -20,6 +20,11 @@ UAbilitySystemComponent* ACC_BaseCharacter::GetAbilitySystemComponent() const
 	return nullptr;
 }
 
+UAttributeSet* ACC_BaseCharacter::GetAttributeSet() const
+{
+	return nullptr;
+}
+
 // Called when the game starts or when spawned
 void ACC_BaseCharacter::BeginPlay()
 {
@@ -36,6 +41,15 @@ void ACC_BaseCharacter::GiveStartupAbilities()
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability);
 		GetAbilitySystemComponent()->GiveAbility(AbilitySpec);
 	}
+}
+
+void ACC_BaseCharacter::InitializeAttributes() const
+{
+	if (!IsValid(InitializeAttributeEffect)) return;
+	
+	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(InitializeAttributeEffect,1,ContextHandle);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 }
 
 

@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/CC_AbilitySystemComponent.h"
+#include "AbilitySystem/CC_AttributeSet.h"
 
 ACC_PlayerState::ACC_PlayerState()
 {
@@ -17,6 +18,8 @@ ACC_PlayerState::ACC_PlayerState()
 	//对于 拥有该角色的客户端 (Owner)：采用 Full 模式，同步所有 GE 详情（以便 UI 显示 Buff 图标、剩余时间等）。
 	//对于 其他观察者 (Simulated Proxies)：采用 Minimal 模式，只同步 Tags 和 Attributes。
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	AttributeSet = CreateDefaultSubobject<UCC_AttributeSet>("AttributeSet");
 }
 
 UAbilitySystemComponent* ACC_PlayerState::GetAbilitySystemComponent() const

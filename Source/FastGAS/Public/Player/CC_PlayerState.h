@@ -8,6 +8,7 @@
 #include "CC_PlayerState.generated.h"
 
 class UAbilitySystemComponent;
+class UAttributeSet;
 /**
  * 
  */
@@ -18,7 +19,11 @@ class FASTGAS_API ACC_PlayerState : public APlayerState,public IAbilitySystemInt
 public:
 	ACC_PlayerState();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UAttributeSet* GetAttributeSet() const {return AttributeSet;}
 private:
 	UPROPERTY(VisibleAnywhere,Category = "CC|Ability")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
 };

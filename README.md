@@ -17,6 +17,13 @@ GA中实例化策略大部分建议选择`每个Actor实例化`这样这个GA里
 > 如何控制鼠标或者按键按住一直自动触发技能?可以在按键绑定的时候使用 ETriggerEvent::Triggered 上面又设置了必须等能力结束了才能重新触发,所以按住鼠标就可以一直触发了
 >
 
+
+## GAS 调试命令
+>ShowDebug AbilitySystem
+
+PageUp/PageDown可以切换调试对象
+
+
 ## 如何在C++中定义原生 Tag?
 
 
@@ -256,4 +263,36 @@ void UCC_AttributeSet::OnRep_Health(const FGameplayAttributeData OldValue)
 	//本地预测修改属性
 	GAMEPLAYATTRIBUTE_REPNOTIFY(ThisClass, Health, OldValue);
 }
+```
+
+## c++如何使用增强输入绑定按键?
+
+
+## 如何使用GE初始化AttributeSet?
+目前看来这个办法并不好用,适合单机游戏,不太灵活
+
+```c++
+//BaseCharacter.h
+
+	UPROPERTY(EditDefaultsOnly,Category = "CC|Effects")
+	TSubclassOf<UGameplayEffect> InitializeAttributeEffect;
+
+//BaseCharacter.cpp
+void ACC_BaseCharacter::InitializeAttributes() const
+{
+	if (!IsValid(InitializeAttributeEffect)) return;
+	
+	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(InitializeAttributeEffect,1,ContextHandle);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+}
+
+
+//记得在Character蓝图中给变量InitializeAttributeEffect赋值
+
+
+//激活
+//如果是Player(ASC 放在PlayerState中) 可以只在PossessedBy函数中调用InitializeAttributes,因为Effect是同步的,所以只在服务器调用即可
+//如果是Enemy(ASC 放在Character中) 可以在BeginPlay函数中调用InitializeAttributes
+
 ```

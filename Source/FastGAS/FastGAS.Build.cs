@@ -17,7 +17,8 @@ public class FastGAS : ModuleRules
 			"EnhancedInput",
 			"GameplayAbilities",
 			"GameplayTasks",
-			"GameplayTags"
+			"GameplayTags",
+			"UMG"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

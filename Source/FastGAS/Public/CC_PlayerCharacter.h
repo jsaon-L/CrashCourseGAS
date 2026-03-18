@@ -6,6 +6,7 @@
 #include "CC_BaseCharacter.h"
 #include "CC_PlayerCharacter.generated.h"
 
+class UAttributeSet;
 class UCameraComponent;
 class USpringArmComponent;
 
@@ -29,4 +30,6 @@ public:
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+
+	virtual UAttributeSet* GetAttributeSet() const override;
 };

@@ -57,9 +57,10 @@ void ACC_PlayerCharacter::PossessedBy(AController* NewController)
 	//这个函数只在服务器调用,当这个pawn被控制了,可以初始化AbilitySystemComponent 拥有者和化身
 	if (!IsValid(GetAbilitySystemComponent()) || !HasAuthority()) return;
 	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
-
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
 	//只在服务器授予能力就行,授予能力行为会自动进行网络同步,这个需要找文档仔细看看
 	GiveStartupAbilities();
+	InitializeAttributes();
 }
 
 void ACC_PlayerCharacter::OnRep_PlayerState()
@@ -70,6 +71,16 @@ void ACC_PlayerCharacter::OnRep_PlayerState()
 	//拥有这两个变量我们才能初始化AbilitySystemComponent
 	if (!IsValid(GetAbilitySystemComponent())) return;
 	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
+}
+
+UAttributeSet* ACC_PlayerCharacter::GetAttributeSet() const
+{
+	ACC_PlayerState* CCPlayerState = Cast<ACC_PlayerState>(GetPlayerState());
+
+	if (!IsValid(CCPlayerState)) return nullptr;
+
+	return CCPlayerState->GetAttributeSet();
 }
 
 

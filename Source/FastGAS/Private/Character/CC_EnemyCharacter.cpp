@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/CC_AbilitySystemComponent.h"
+#include "AbilitySystem/CC_AttributeSet.h"
 
 
 // Sets default values
@@ -16,6 +17,13 @@ ACC_EnemyCharacter::ACC_EnemyCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UCC_AbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
+
+	AttributeSet = CreateDefaultSubobject<UCC_AttributeSet>("AttributeSet");
+}
+
+UAttributeSet* ACC_EnemyCharacter::GetAttributeSet() const
+{
+	return  AttributeSet;
 }
 
 // Called when the game starts or when spawned
@@ -27,11 +35,12 @@ void ACC_EnemyCharacter::BeginPlay()
 	if (!IsValid(AbilitySystemComponent))return;
 	
 	AbilitySystemComponent->InitAbilityActorInfo(this,this);
-
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
 	
 	if (!HasAuthority())return;
 	//赋予能力只在服务器上执行
 	GiveStartupAbilities();
+	InitializeAttributes();
 }
 
 UAbilitySystemComponent* ACC_EnemyCharacter::GetAbilitySystemComponent() const
