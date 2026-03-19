@@ -48,7 +48,7 @@ UAbilitySystemComponent* ACC_PlayerCharacter::GetAbilitySystemComponent() const
 	return CCPlayerState->GetAbilitySystemComponent();
 }
 
-
+//此函数只在服务器调用
 void ACC_PlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -58,7 +58,7 @@ void ACC_PlayerCharacter::PossessedBy(AController* NewController)
 	if (!IsValid(GetAbilitySystemComponent()) || !HasAuthority()) return;
 	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
 	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
-	//只在服务器授予能力就行,授予能力行为会自动进行网络同步,这个需要找文档仔细看看
+	//只在服务器授予能力就行,授予能力行为会自动进行网络同步
 	GiveStartupAbilities();
 	InitializeAttributes();
 }

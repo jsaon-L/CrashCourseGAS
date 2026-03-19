@@ -50,10 +50,6 @@ void UCC_WidgetComponent::OnASCInitialized(UAbilitySystemComponent* ASC, UAttrib
 
 void UCC_WidgetComponent::OnAttributeInitialized()
 {
-	//绑定 attribute
-
-
-	
 	for (const TTuple<FGameplayAttribute,FGameplayAttribute>& pair : AttributeMap)
 	{
 		//查找所有ui 看看是不是 我们的CC AttributeWidget

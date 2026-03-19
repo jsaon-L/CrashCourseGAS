@@ -62,9 +62,14 @@ namespace CCTags
 ## 联网游戏如何在正确时机初始化ASC?
 多人游戏中Player的ASC应该放在PlayerState中,非玩家控制的怪物ASC一般放到Character中
 
-Player 需要在PlayerCharacter类中`PossessedBy`与`OnRep_PlayerState`都进行初始化
+> Player 需要在PlayerCharacter类中`PossessedBy`与`OnRep_PlayerState`都进行初始化.
+因为Player的ASC组件放在PlayerState中,所以Player的ASC初始化要考虑服务器和客户端都正确初始化.
+- 服务端 PossessedBy函数只在服务器调用,并且此时PlayerState类已经初始化了,所以可以在PossessedBy中对ASC进行初始化
+- 客户端 OnRep_PlayerState 客户端初始化ASC需要先得到ASC,因为ASC在PlayerState中,所以我们可以等待PlayerState同步到客户端再进行ASC的初始化
 
-Enemy 需要在`EnemyCharacter::BeginPlay`中进行初始化
+
+> Enemy 需要在`EnemyCharacter::BeginPlay`中进行初始化.
+因为BeginPlay是在客户端/服务器端都执行,并且ASC组件就在Character上,所以这一个函数就可以正确在客户端/服务器初始化ASC
 
 ``` c++
 //PlayerCharacter.cpp
@@ -314,3 +319,118 @@ CCAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(FGameplayAttri
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+
+
+## 如何将Attribute的数值与UIWidget绑定起来显示血量等数值?
+
+我们需要在ASC正确初始化后进行属性绑定
+[联网游戏如何在正确时机初始化ASC](#联网游戏如何在正确时机初始化ASC)
+
+* 教程里思路:
+	* 1.给Character增加一个组件,UWidgetComponent(用来在角色头顶显示UI的)
+	* 2.创建UIWidget 显示血量什么的
+	* 3.在UWidgetComponent中绑定 Attribute 变化委托
+
+
+* 如何知道ASC已经初始化了
+增加OnASCInitialized 动态多播委托,用来通知ASC已经初始化完成了,我们绑定需要在ASC初始化以后进行
+```c++
+//Player的情况
+//PlayerCharacter.cpp
+//此函数只在服务器调用
+void ACC_PlayerCharacter::PossessedBy(AController* NewController)
+{
+	if (!IsValid(GetAbilitySystemComponent()) || !HasAuthority()) return;
+	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
+
+}
+
+void ACC_PlayerCharacter::OnRep_PlayerState()
+{
+	if (!IsValid(GetAbilitySystemComponent())) return;
+	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
+}
+
+//Enemy的情况
+//EnemyCharacter.cpp
+void ACC_EnemyCharacter::BeginPlay()
+{
+	if (!IsValid(AbilitySystemComponent))return;
+	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
+}
+
+```
+* 正确等待ASC初始化并绑定 (我们在WidgetComponent组件中进行绑定(此组件是放在Character中的))
+
+```c++
+//CC_WidgetComponent.cpp
+void UCC_WidgetComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	//我们先拿一次看看能不能拿到ASC组件,如果能拿到说明ASC已经初始化了,我们可以进行绑定了
+	InitAbilitySystemData();
+
+	//如果没拿到ASC组件,说明可能是在客户端,我们需要等ASC初始化才能开始绑定
+	//所以在这监听ASC初始化
+	if (!CCAttributeSet.IsValid() || !CCAbilitySystemComponent.IsValid())
+	{
+		CCCharacter->OnASCInitialized.AddDynamic(this, &UCC_WidgetComponent::OnASCInitialized);
+	}
+}
+
+void UCC_WidgetComponent::InitAbilitySystemData()
+{
+	CCCharacter = Cast<ACC_BaseCharacter>(GetOwner());
+	CCAttributeSet = Cast<UCC_AttributeSet>(CCCharacter->GetAttributeSet());
+	CCAbilitySystemComponent = Cast<UCC_AbilitySystemComponent>(CCCharacter->GetAbilitySystemComponent());
+	//BeginPlay直接初始化完成,那就开始绑定
+	if (CCAttributeSet.IsValid())
+	{
+		OnAttributeInitialized();
+	}
+}
+
+void UCC_WidgetComponent::OnASCInitialized(UAbilitySystemComponent* ASC, UAttributeSet* AttributeSet)
+{
+	CCAttributeSet = Cast<UCC_AttributeSet>(AttributeSet);
+	CCAbilitySystemComponent = Cast<UCC_AbilitySystemComponent>(ASC);
+	//BeginPlay没初始化成功,那就等待初始化成功事件,然后开始绑定
+	if (CCAttributeSet.IsValid())
+	{
+		OnAttributeInitialized();
+	}
+}
+//绑定函数
+
+
+void UCC_WidgetComponent::OnAttributeInitialized()
+{
+	//绑定 attribute
+	//我们可以把ASC发送给UI组件,让UI组件自己绑定,或者在此拿到我们自定义的UIWidget进行绑定
+	
+	//GetUserWidgetObject()函数可以拿到当前组件上显示的UIWidget
+	//注意 WidgetTree->ForEachWidget 并不包含自身
+
+	GetUserWidgetObject()->WidgetTree->ForEachWidget([this,&pair](UWidget* ChildWidget)
+	{
+		//我们可以在此做类型转换,判断此UIWidget是不是我们用来显示Attribute的
+		if(是我们用来显示Attribute的UI)
+		{
+			CCAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(FGameplayAttribute)
+			.AddLambda
+			或者
+			Bind
+			.AddLambda([this, &Pair, CCAttributeWidget](const FOnAttributeChangeData& Data)
+			{
+				Data.NewValue就是新值
+			});
+		}
+	});
+	
+}
+```
+
+

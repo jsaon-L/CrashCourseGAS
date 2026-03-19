@@ -26,7 +26,8 @@ UAttributeSet* ACC_EnemyCharacter::GetAttributeSet() const
 	return  AttributeSet;
 }
 
-// Called when the game starts or when spawned
+//敌人ASC放在自己身上,并且BeginPlay在客户端服务器都会调用,所以在此初始化ASC
+//可以完全正确初始化客户端以及服务器端敌人的ASC
 void ACC_EnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
