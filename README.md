@@ -296,3 +296,21 @@ void ACC_BaseCharacter::InitializeAttributes() const
 //如果是Enemy(ASC 放在Character中) 可以在BeginPlay函数中调用InitializeAttributes
 
 ```
+
+# 如何监听一个Attribute变化
+
+```C++
+//通过asc 就可得到多播委托,然后就可以.AddLambda 或者bind了
+CCAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(FGameplayAttribute)
+
+```
+
+## AttributeSet是怎么和AbilitySystemComponent关联起来的?
+
+当两个变量在同一个actor上可以通过反射自动关联,注意必须有UPROPERTY()来使这个AttributeSet可以被反射发现
+
+	UPROPERTY(VisibleAnywhere,Category = "CC|Ability")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UAttributeSet> AttributeSet;
