@@ -51,3 +51,15 @@ void UCC_AbilitySystemComponent::HandleAutoActivatedAbility(const FGameplayAbili
 		}
 	}
 }
+
+void UCC_AbilitySystemComponent::SetAbilityLevel(TSubclassOf<UGameplayAbility> Ability, int32 Level)
+{
+	
+	if (IsValid(GetAvatarActor()) && !GetAvatarActor()->HasAuthority()) return;
+
+	if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromClass(Ability))
+	{
+		Spec->Level = Level;
+		MarkAbilitySpecDirty(*Spec);
+	}
+}

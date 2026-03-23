@@ -433,4 +433,23 @@ void UCC_WidgetComponent::OnAttributeInitialized()
 }
 ```
 
+## 如何给技能升级?
 
+```c++
+//CC_AbilitySystemComponent.cpp
+//修改等级然后设置脏,就更新了
+void UCC_AbilitySystemComponent::SetAbilityLevel(TSubclassOf<UGameplayAbility> Ability, int32 Level)
+{
+	//只能在服务器更改等级
+	if (IsValid(GetAvatarActor()) && !GetAvatarActor()->HasAuthority()) return;
+
+	if (FGameplayAbilitySpec* Spec = FindAbilitySpecFromClass(Ability))
+	{
+		Spec->Level = Level;
+		MarkAbilitySpecDirty(*Spec);
+	}
+}
+```
+注意如果你想调用`SetAbilityLevel`函数记得在服务器调用,可以使用 Run on Server RPC 来实现
+然后可以在 GA中使用`GetAbilityLevel`获取技能等级,后续可以使用此技能等级传递给GE/根据技能等级实现各种效果之类的
+也可以删除技能,重新赋予技能,在赋予技能的时候传入等级参数

@@ -19,4 +19,7 @@ public:
 	
 
 	void HandleAutoActivatedAbility(const FGameplayAbilitySpec& AbilitySpec);
+
+	UFUNCTION(BlueprintCallable,category = "CC|Ability")
+	void SetAbilityLevel(TSubclassOf<UGameplayAbility> Ability, int32 Level);
 };
