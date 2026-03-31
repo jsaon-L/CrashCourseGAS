@@ -19,8 +19,9 @@ GA中实例化策略大部分建议选择`每个Actor实例化`这样这个GA里
 
 
 ## GAS 调试命令
->ShowDebug AbilitySystem
-
+```
+ShowDebug AbilitySystem
+```
 PageUp/PageDown可以切换调试对象
 
 
