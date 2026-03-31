@@ -452,4 +452,32 @@ void UCC_AbilitySystemComponent::SetAbilityLevel(TSubclassOf<UGameplayAbility> A
 ```
 注意如果你想调用`SetAbilityLevel`函数记得在服务器调用,可以使用 Run on Server RPC 来实现
 然后可以在 GA中使用`GetAbilityLevel`获取技能等级,后续可以使用此技能等级传递给GE/根据技能等级实现各种效果之类的
-也可以删除技能,重新赋予技能,在赋予技能的时候传入等级参数
+也可以删除技能,重新赋予技能,在赋予技能的时候传入等级参数来给技能升级
+
+
+## c++如何编写复制变量?
+
+- 给变量增加`Replicated`
+```c++
+//.h
+	UPROPERTY(blueprintreadonly, meta = (AllowPrivateAccess = "true"),Replicated)
+	bool bAlive = true;
+```
+- override `GetLifetimeReplicatedProps` 函数
+```c++
+//.h
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+```
+
+- 使用宏`DOREPLIFETIME`将变量添加到`GetLifetimeReplicatedProps`函数中
+```c++
+//.cpp
+#include "Net/UnrealNetwork.h"
+
+void ACC_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, bAlive);
+}
+```

@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "CC_BaseCharacter.generated.h"
 
+struct FOnAttributeChangeData;
 class UAttributeSet;
 class UGameplayEffect;
 class UGameplayAbility;
@@ -19,9 +20,13 @@ class FASTGAS_API ACC_BaseCharacter : public ACharacter,public IAbilitySystemInt
 	GENERATED_BODY()
 
 public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(BlueprintAssignable)
 	FASCInitialized OnASCInitialized;
+
+	bool IsAlive() const { return bAlive; }
+	void SetAlive(bool bNewAlive) { bAlive = bNewAlive; }
 	
 	// Sets default values for this character's properties
 	ACC_BaseCharacter();
@@ -29,6 +34,10 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	virtual UAttributeSet* GetAttributeSet() const;
+
+
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleRespawn();
 	
 protected:
 	// Called when the game starts or when spawned
@@ -36,11 +45,20 @@ protected:
 
 	void GiveStartupAbilities();
 	void InitializeAttributes() const;
-	
+
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	virtual void HandleDeath();
+
+	void BindHealthChangedDelegate();
 private:
 	UPROPERTY(EditDefaultsOnly,Category = "CC|Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 	UPROPERTY(EditDefaultsOnly,Category = "CC|Effects")
 	TSubclassOf<UGameplayEffect> InitializeAttributeEffect;
+
+	//私有变量蓝图只读 需要添加 meta = (AllowPrivateAccess = "true")
+	UPROPERTY(blueprintreadonly, meta = (AllowPrivateAccess = "true"),Replicated)
+	bool bAlive = true;
 };

@@ -5,7 +5,15 @@
 
 #include "AbilitySystemComponent.h"
 #include "GameplayAbilitySpec.h"
+#include "AbilitySystem/CC_AttributeSet.h"
+#include "Net/UnrealNetwork.h"
 
+
+void ACC_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, bAlive);
+}
 
 // Sets default values
 ACC_BaseCharacter::ACC_BaseCharacter()
@@ -24,6 +32,8 @@ UAttributeSet* ACC_BaseCharacter::GetAttributeSet() const
 {
 	return nullptr;
 }
+
+
 
 // Called when the game starts or when spawned
 void ACC_BaseCharacter::BeginPlay()
@@ -54,5 +64,35 @@ void ACC_BaseCharacter::InitializeAttributes() const
 
 
 
+void ACC_BaseCharacter::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	if (Data.NewValue <= 0)
+	{
+		HandleDeath();
+	}
+}
 
+void ACC_BaseCharacter::HandleDeath()
+{
+	bAlive = false;
+
+	if(IsValid(GEngine))
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("%s has died!"),*GetName()));
+	}
+}
+
+void ACC_BaseCharacter::BindHealthChangedDelegate()
+{
+	//监听属性变化
+	UCC_AttributeSet* Ucc_Attributes = Cast<UCC_AttributeSet>(GetAttributeSet());
+	if (!IsValid(Ucc_Attributes)) return;
+	
+	GetAbilitySystemComponent()->GetGameplayAttributeValueChangeDelegate(Ucc_Attributes->GetHealthAttribute()).AddUObject(this,&ThisClass::OnHealthChanged);
+}
+
+void ACC_BaseCharacter::HandleRespawn()
+{
+	bAlive = true;
+}
 

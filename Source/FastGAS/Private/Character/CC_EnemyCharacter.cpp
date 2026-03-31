@@ -42,6 +42,9 @@ void ACC_EnemyCharacter::BeginPlay()
 	//赋予能力只在服务器上执行
 	GiveStartupAbilities();
 	InitializeAttributes();
+
+	//监听属性变化
+	BindHealthChangedDelegate();
 }
 
 UAbilitySystemComponent* ACC_EnemyCharacter::GetAbilitySystemComponent() const

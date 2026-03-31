@@ -61,6 +61,9 @@ void ACC_PlayerCharacter::PossessedBy(AController* NewController)
 	//只在服务器授予能力就行,授予能力行为会自动进行网络同步
 	GiveStartupAbilities();
 	InitializeAttributes();
+
+	//在服务器上绑定
+	BindHealthChangedDelegate();
 }
 
 void ACC_PlayerCharacter::OnRep_PlayerState()
@@ -72,6 +75,9 @@ void ACC_PlayerCharacter::OnRep_PlayerState()
 	if (!IsValid(GetAbilitySystemComponent())) return;
 	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(),this);
 	OnASCInitialized.Broadcast(GetAbilitySystemComponent(),GetAttributeSet());
+
+	//在所有客户端上绑定
+	BindHealthChangedDelegate();
 }
 
 UAttributeSet* ACC_PlayerCharacter::GetAttributeSet() const
