@@ -482,3 +482,116 @@ void ACC_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ThisClass, bAlive);
 }
 ```
+
+## c++如何编写蓝图异步节点?
+
+- 需要继承类`UBlueprintAsyncActionBase`
+- 定义一个或多个动态多播委托(异步输出引脚能用到)`DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAttributeChanged, FGameplayAttribute, Attribute, float, NewValue, float, OldValue);`
+- 标记动态多播委托变量为输出引脚 需要使用 BlueprintAssignable标记
+```
+	UPROPERTY(BlueprintAssignable) FOnAttributeChanged OnAttributeChanged;
+```
+- 创建静态工厂类函数,给蓝图创建此异步任务实例 
+```
+	UFUNCTION(BlueprintCallable,meta = (BlueprintInternalUseOnly = "true"))
+	static UCC_AttributeChangeTask* ListenForAttributeChange(UAbilitySystemComponent* AbilitySystemComponent,FGameplayAttribute Attribute);
+
+```
+- 创建EndTask函数`void EndTask();`需要调用清理函数
+```	
+//此函数可以暴露给蓝图手动停止,也可以异步节点内自动调用结束,自动调用结束就不用手动调用结束了
+void UCC_AttributeChangeTask::EndTask()
+{
+	if (ASC.IsValid())
+	{
+		ASC->GetGameplayAttributeValueChangeDelegate(AttributeToListenFor).RemoveAll(this);
+	}
+
+	SetReadyToDestroy();
+	MarkAsGarbage();
+}
+```
+
+- 完整示例
+```
+//CC_AttributeChangeTask.h
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AttributeSet.h"
+#include "Kismet/BlueprintAsyncActionBase.h"
+#include "CC_AttributeChangeTask.generated.h"
+
+struct FOnAttributeChangeData;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAttributeChanged, FGameplayAttribute, Attribute, float, NewValue, float, OldValue);
+
+//添加meta=(ExposedAsyncProxy = AsyncTask) 可以在节点返回实例引用 然后在合适时机调用EndTask
+UCLASS(Blueprintable,meta = (ExposedAsyncProxy = "AsyncTask"))
+class FASTGAS_API UCC_AttributeChangeTask : public UBlueprintAsyncActionBase
+{
+	GENERATED_BODY()
+
+public:
+
+	//异步输出引脚 使用 UPROPERTY(BlueprintAssignable) 标记 可以有多个动态多播委托变量,每个变量对应一个输出引脚
+	UPROPERTY(BlueprintAssignable)
+	FOnAttributeChanged OnAttributeChanged;
+
+	//蓝图里创建异步蓝图节点的函数,使用 (BlueprintInternalUseOnly = "true") 标记
+	UFUNCTION(BlueprintCallable,meta = (BlueprintInternalUseOnly = "true"))
+	static UCC_AttributeChangeTask* ListenForAttributeChange(UAbilitySystemComponent* AbilitySystemComponent,FGameplayAttribute Attribute);
+
+
+	//清理函数,此例子里需要手动在蓝图里调用否则不会清理此实例
+	UFUNCTION(BlueprintCallable)
+	void EndTask();
+
+	TWeakObjectPtr<UAbilitySystemComponent> ASC;
+	FGameplayAttribute AttributeToListenFor;
+
+	void AttributeChanged(const FOnAttributeChangeData& Data);
+};
+
+```
+```
+//CC_AttributeChangeTask.cpp
+
+#include "Tasks/CC_AttributeChangeTask.h"
+
+#include "AbilitySystemComponent.h"
+
+UCC_AttributeChangeTask* UCC_AttributeChangeTask::ListenForAttributeChange(UAbilitySystemComponent* AbilitySystemComponent, FGameplayAttribute Attribute)
+{
+	if (!IsValid(AbilitySystemComponent))
+	{
+		return nullptr;
+	}
+	
+	UCC_AttributeChangeTask* WaitForAttributeChangeTask = NewObject<UCC_AttributeChangeTask>();
+	WaitForAttributeChangeTask->ASC = AbilitySystemComponent;
+	WaitForAttributeChangeTask->AttributeToListenFor = Attribute;
+	
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute).AddUObject(WaitForAttributeChangeTask,&UCC_AttributeChangeTask::AttributeChanged);
+
+	return WaitForAttributeChangeTask;
+	
+}
+
+void UCC_AttributeChangeTask::EndTask()
+{
+	if (ASC.IsValid())
+	{
+		ASC->GetGameplayAttributeValueChangeDelegate(AttributeToListenFor).RemoveAll(this);
+	}
+
+	SetReadyToDestroy();
+	MarkAsGarbage();
+}
+
+void UCC_AttributeChangeTask::AttributeChanged(const FOnAttributeChangeData& Data)
+{
+	OnAttributeChanged.Broadcast(Data.Attribute,Data.NewValue,Data.OldValue);
+}
+
+```
