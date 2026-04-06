@@ -2,7 +2,12 @@
 
 
 #include "AbilitySystem/CC_AttributeSet.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
+#include "GameplayTags/CCTags.h"
 #include "Net/UnrealNetwork.h"
+
 
 void UCC_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -12,6 +17,22 @@ void UCC_AttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, Mana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, MaxMana, COND_None, REPNOTIFY_Always);
+}
+
+void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	//当pawn被杀了,通知回击杀者 可以用来判定经验增长等
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute() && GetHealth()<=0.f)
+	{
+		UE_LOG(LogTemp, Display, TEXT("PostGameplayEffectExecute Data.Target.GetAvatarActor():%s"),*Data.Target.GetAvatarActor()->GetName());
+
+		FGameplayEventData Payload;
+		// Payload.Instigator = Data.Target.GetAvatarActor();
+		Payload.Target = Data.Target.GetAvatarActor();
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Data.EffectSpec.GetEffectContext().GetInstigator(), CCTags::Events::KillScored,Payload);
+	}
 }
 
 void UCC_AttributeSet::OnRep_Health(const FGameplayAttributeData OldValue)
