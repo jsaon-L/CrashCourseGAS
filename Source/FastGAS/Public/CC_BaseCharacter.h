@@ -38,6 +38,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleRespawn();
+
+	UFUNCTION(BlueprintCallable)
+	void ResetAttributes();
+
 	
 protected:
 	// Called when the game starts or when spawned
@@ -57,6 +61,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly,Category = "CC|Effects")
 	TSubclassOf<UGameplayEffect> InitializeAttributeEffect;
+
+	UPROPERTY(EditDefaultsOnly,Category = "CC|Effects")
+	TSubclassOf<UGameplayEffect> ResetAttributeEffect;
+
 
 	//私有变量蓝图只读 需要添加 meta = (AllowPrivateAccess = "true")
 	UPROPERTY(blueprintreadonly, meta = (AllowPrivateAccess = "true"),Replicated)
