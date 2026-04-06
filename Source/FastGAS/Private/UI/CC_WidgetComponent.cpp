@@ -22,7 +22,6 @@ void UCC_WidgetComponent::BeginPlay()
 	{
 		CCCharacter->OnASCInitialized.AddDynamic(this, &UCC_WidgetComponent::OnASCInitialized);
 	}
-	
 }
 
 void UCC_WidgetComponent::InitAbilitySystemData()

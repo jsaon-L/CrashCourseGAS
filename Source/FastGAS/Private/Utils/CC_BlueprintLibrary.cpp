@@ -3,6 +3,9 @@
 
 #include "Utils/CC_BlueprintLibrary.h"
 
+#include "Character/CC_BaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+
 //第一个参数是敌人的前向向量,第二个向量是敌人到攻击者的向量
 EHitDirection UCC_BlueprintLibrary::GetHitDirection(const FVector& TargetForward, const FVector& ToInstigator)
 {
@@ -36,4 +39,33 @@ FName UCC_BlueprintLibrary::GetHitDirectionName(const EHitDirection& HitDirectio
 	default:
 		return FName("None");
 	}
+}
+
+FClosestActorWithTagResult UCC_BlueprintLibrary::FindClosestActorWithTag(const UObject* WordContextObject,const FVector& Origin, const FName& Tag)
+{
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsWithTag(WordContextObject,Tag,Actors);
+
+	float ClosestDistance = TNumericLimits<float>::Max();
+	AActor* ClosestActor = nullptr;
+
+	for (AActor* Actor : Actors)
+	{
+		if (!IsValid(Actor)) continue;
+		ACC_BaseCharacter* BaseCharacter = Cast<ACC_BaseCharacter>(Actor);
+		if (!IsValid(BaseCharacter) || !BaseCharacter->IsAlive()) continue;
+
+		const float Distance = FVector::Dist(Origin, Actor->GetActorLocation());
+		if (Distance < ClosestDistance)
+		{
+			ClosestActor = Actor;
+			ClosestDistance = Distance;
+		}
+	}
+
+	FClosestActorWithTagResult Result;
+	Result.Actor = ClosestActor;
+	Result.Distance = ClosestDistance;
+	
+	return Result;
 }

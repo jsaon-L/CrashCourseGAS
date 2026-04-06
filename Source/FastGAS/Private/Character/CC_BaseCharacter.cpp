@@ -8,6 +8,11 @@
 #include "AbilitySystem/CC_AttributeSet.h"
 #include "Net/UnrealNetwork.h"
 
+namespace CCTags
+{
+	const FName Player = FName("Player");
+}
+
 
 void ACC_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
