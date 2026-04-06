@@ -595,3 +595,28 @@ void UCC_AttributeChangeTask::AttributeChanged(const FOnAttributeChangeData& Dat
 }
 
 ```
+
+## 如何知道我杀了哪个敌人,或者我对敌人造成了多少伤害,比如击杀小兵增加经验?
+
+- 我们可以在`AttributeSet`函数 `PostGameplayEffectExecute`里做血量变化监听, 通过`GameplayEvent`来通知回击杀者
+
+* 定义一个Tag `CCTags::Events::KillScored` 参照上面定义tag部分
+* 构造并发送事件
+``` c++
+//CC_AttributeSet.cpp
+void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+
+	//这里我们判断如果变化的属性是血量,并且当前血量已经<=0就发送事件,如果想统计伤害,我们也可以只判断是否是血量就可以
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute() && GetHealth() <= 0.f)
+	{
+		FGameplayEventData Payload;
+		//这个Data.Target.GetAvatarActor();就是被扣血的角色
+		Payload.Target = Data.Target.GetAvatarActor();
+		//Data.EffectSpec.GetEffectContext().GetInstigator() 就是发出伤害的玩家,我们把这个事件发送回给他
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Data.EffectSpec.GetEffectContext().GetInstigator(), CCTags::Events::KillScored,Payload);
+	}
+}
+```
+* 监听事件 我们可以在击杀者的GA中使用WaitGameplayEvent来监听这个 `CCTags::Events::KillScored` tag,从Payload中拿到击杀了谁
