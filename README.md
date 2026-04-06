@@ -619,4 +619,4 @@ void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 	}
 }
 ```
-* 监听事件 我们可以在击杀者的GA中使用WaitGameplayEvent来监听这个 `CCTags::Events::KillScored` tag,从Payload中拿到击杀了谁
+* 监听事件 我们可以在击杀者的GA中使用`WaitGameplayEvent`节点来监听这个 `CCTags::Events::KillScored`tag,从Payload中拿到击杀了谁
