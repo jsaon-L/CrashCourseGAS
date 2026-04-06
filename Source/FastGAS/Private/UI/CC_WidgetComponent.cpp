@@ -3,7 +3,7 @@
 
 #include "UI/CC_WidgetComponent.h"
 
-#include "CC_BaseCharacter.h"
+#include "Character/CC_BaseCharacter.h"
 #include "AbilitySystem/CC_AbilitySystemComponent.h"
 #include "AbilitySystem/CC_AttributeSet.h"
 #include "Blueprint/WidgetTree.h"

@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "FastGAS/Public/CC_BaseCharacter.h"
+#include "FastGAS/Public/Character/CC_BaseCharacter.h"
 
 #include "AbilitySystemComponent.h"
 #include "GameplayAbilitySpec.h"

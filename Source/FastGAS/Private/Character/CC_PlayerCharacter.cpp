@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "FastGAS/Public/CC_PlayerCharacter.h"
+#include "FastGAS/Public/Character/CC_PlayerCharacter.h"
 
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
