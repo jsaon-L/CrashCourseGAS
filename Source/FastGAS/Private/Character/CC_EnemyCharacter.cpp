@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystem/CC_AbilitySystemComponent.h"
 #include "AbilitySystem/CC_AttributeSet.h"
+#include "Runtime/AIModule/Classes/AIController.h"
 
 
 // Sets default values
@@ -45,6 +46,19 @@ void ACC_EnemyCharacter::BeginPlay()
 
 	//监听属性变化
 	BindHealthChangedDelegate();
+}
+
+void ACC_EnemyCharacter::HandleDeath()
+{
+	Super::HandleDeath();
+
+	AAIController* aiController = GetController<AAIController>();
+
+	if (aiController)
+	{
+		aiController->StopMovement();
+	}
+	
 }
 
 UAbilitySystemComponent* ACC_EnemyCharacter::GetAbilitySystemComponent() const

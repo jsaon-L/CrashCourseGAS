@@ -21,7 +21,7 @@ public class FastGAS : ModuleRules
 			"UMG"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule" });
 
 
 	}

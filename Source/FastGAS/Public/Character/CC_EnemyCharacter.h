@@ -32,6 +32,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void HandleDeath() override;
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
