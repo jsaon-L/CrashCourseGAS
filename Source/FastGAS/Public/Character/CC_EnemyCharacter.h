@@ -18,6 +18,16 @@ public:
 	ACC_EnemyCharacter();
 
 	virtual UAttributeSet* GetAttributeSet() const override;
+
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "CC|AI")
+	float AcceptanceRadius{500.f};
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "CC|AI")
+	float MinAttackDelay{0.1f};
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "CC|AI")
+	float MaxAttackDelay{0.5f};
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

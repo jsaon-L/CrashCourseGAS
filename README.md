@@ -272,7 +272,97 @@ void UCC_AttributeSet::OnRep_Health(const FGameplayAttributeData OldValue)
 ```
 
 ## c++如何使用增强输入绑定按键?
+* 先准备 `UInputMappingContext`IMC和`UInputAction` IA
+* 在`UEnhancedInputLocalPlayerSubsystem`中注册`InputSubsystem->AddMappingContext(Content,0);`IMC
+* 在`UEnhancedInputComponent`中注册IA
 
+``` c++
+//CC_PlayerController.h
+
+struct FInputActionValue;
+class UInputAction;
+class UInputMappingContext;
+
+private:
+	UPROPERTY(EditDefaultsOnly,Category="CC|Input")
+	TArray<TObjectPtr<UInputMappingContext>> InputMappingContexts;
+	
+	UPROPERTY(EditDefaultsOnly,Category="CC|Input")
+	TObjectPtr<UInputAction> JumpAction;
+	
+	UPROPERTY(EditDefaultsOnly,Category="CC|Input")
+	TObjectPtr<UInputAction> MoveAction;
+
+	void Jump();
+	void StopJumping();
+	void Move(const FInputActionValue& Value);
+}
+```
+
+``` c++
+//CC_PlayerController.cpp
+
+#include "Player/CC_PlayerController.h"
+
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemInterface.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
+#include "GameFramework/Character.h"
+#include "GameplayTags/CCTags.h"
+
+
+void ACC_PlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	if (!IsValid(InputSubsystem)) return;
+	
+	for (UInputMappingContext* Content:InputMappingContexts)
+	{
+		InputSubsystem->AddMappingContext(Content,0);
+	}
+	
+	UEnhancedInputComponent* EnhancedInputComponent =  Cast<UEnhancedInputComponent>(InputComponent) ;
+	if (!IsValid(EnhancedInputComponent)) return;
+
+	EnhancedInputComponent->BindAction(JumpAction,ETriggerEvent::Started,this,&ThisClass::Jump);
+	EnhancedInputComponent->BindAction(JumpAction,ETriggerEvent::Completed,this,&ThisClass::StopJumping);
+	EnhancedInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&ThisClass::Move);
+}
+
+void ACC_PlayerController::Jump()
+{
+	if (!IsValid(GetCharacter())) return;
+
+	GetCharacter()->Jump();
+}
+
+void ACC_PlayerController::StopJumping()
+{
+	if (!IsValid(GetCharacter())) return;
+
+	GetCharacter()->StopJumping();
+}
+
+void ACC_PlayerController::Move(const FInputActionValue& Value)
+{
+	if (!IsValid(GetPawn())) return;
+
+	const FVector2d MovementVector = Value.Get<FVector2d>();
+
+	const FRotator YawRotation(0.f,GetControlRotation().Yaw,0.f);
+	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	
+	//这里需要注意 UE中X是前方向,但是增强输入系统的 Value 是按照 XYZ(左右/前后/上下)顺序的
+	GetPawn()->AddMovementInput(ForwardDirection,MovementVector.Y);
+	GetPawn()->AddMovementInput(RightDirection,MovementVector.X);
+}
+
+```
 
 ## 如何使用GE初始化AttributeSet?
 目前看来这个办法并不好用,适合单机游戏,不太灵活
