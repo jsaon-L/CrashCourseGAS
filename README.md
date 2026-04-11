@@ -712,7 +712,44 @@ void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 * 监听事件 我们可以在击杀者的GA中使用`WaitGameplayEvent`节点来监听这个 `CCTags::Events::KillScored`tag,从Payload中拿到击杀了谁
 
 
-## 敌人小兵攻击,子弹投射物生成注意事项
 
-1. 生成子弹的GA_Attack 需要网络执行策略`NetExecutionPolicy`为`SercerOnly` 因为SpawnActor函数应该在服务器调用(或者调用SpawnActor前加`HasAuthority`判断)
-2. 弹丸Actor的网络复制变量应该为`Replicates = True`
+## 子弹/投射物制作思路
+
+1. 制作一个`GA_Attack`  需要网络执行策略`NetExecutionPolicy`为`SercerOnly` 因为SpawnActor函数应该在服务器调用(或者调用SpawnActor前加`HasAuthority`判断)
+2. 制作一个 `Projectile Actor` 弹丸Actor的网络复制变量应该为`Replicates = True` 这样在服务器Spawn这个Actor的时候,所有客户端都会Spawn这个Actor,一般也可以在这里配置`Initial Life Span`让子弹生成几秒不管打没达到敌人都消失
+3. 制作一个 `GE_Projectile_Damage` 在`Modifiers->Modifier Magnitude->Manitude Calculation Type = Set By Caller`然后给Set by Caller选择一个tag`Set By Caller Magnitude->Data Tag`
+4. `GA_Attack` 可以播放攻击蒙太奇动画,同时在服务器SpawnActor(Projectile Actor) 同时可以传入`伤害数值`(Projectile Actor 的 Damage变量可以选择在生成时暴露引脚)
+5. `Projectile Actor` 与其他人重叠时应用伤害
+``` c++
+//CC_Projectile.cpp
+
+//重叠时
+void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+	//需要在服务器应用GE
+	if (!HasAuthority()) return;
+	
+	//一些判断
+	ACC_PlayerCharacter* PlayerCharacter = Cast<ACC_PlayerCharacter>(OtherActor);
+	if (!PlayerCharacter) return;
+	if (!PlayerCharacter->IsAlive()) return;
+	UAbilitySystemComponent* AbilitySystemComponent = PlayerCharacter->GetAbilitySystemComponent();
+	if (!AbilitySystemComponent) return;
+	if (!IsValid(DamageEffect)) return;
+
+	//构造GE
+	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffect,1,EffectContextHandle);
+	//添加Set By Caller 数据
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle,CCTags::SetByCaller::Projectile,-Damage);
+	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+
+	//播放一些击中特效
+	SpawnImpactEffects();
+	
+	//击中后销毁子弹自己(注意考虑子弹没击中敌人过几秒后也要自动销毁/或者子弹跑一段距离也销毁射程限制)
+	Destroy();
+}
+
+```

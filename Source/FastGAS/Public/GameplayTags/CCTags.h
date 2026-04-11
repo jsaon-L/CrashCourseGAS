@@ -5,6 +5,11 @@
 
 namespace CCTags
 {
+	namespace SetByCaller
+	{
+		UE_DECLARE_GAMEPLAY_TAG_EXTERN(Projectile);
+	}
+	
 	namespace CCAbilities
 	{
 		UE_DECLARE_GAMEPLAY_TAG_EXTERN(ActivateOnGiven);

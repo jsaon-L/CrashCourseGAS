@@ -2,6 +2,12 @@
 
 namespace CCTags
 {
+
+	namespace SetByCaller
+	{
+		UE_DEFINE_GAMEPLAY_TAG_COMMENT(Projectile,"CCTags.SetByCaller.Projectile","set by caller")
+	}
+	
 	namespace CCAbilities
 	{
 		UE_DEFINE_GAMEPLAY_TAG_COMMENT(ActivateOnGiven,"CCTags.CCAbilities.ActivateOnGiven","授予自动激活")

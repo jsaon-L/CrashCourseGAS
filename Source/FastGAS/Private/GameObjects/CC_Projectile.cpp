@@ -3,9 +3,11 @@
 
 #include "GameObjects/CC_Projectile.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Character/CC_PlayerCharacter.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "GameplayTags/CCTags.h"
 
 
 // Sets default values
@@ -33,9 +35,10 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (!IsValid(DamageEffect)) return;
 
-	//TODO:使用Damge变量
 	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 	FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffect,1,EffectContextHandle);
+
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle,CCTags::SetByCaller::Projectile,-Damage);
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 
 	SpawnImpactEffects();
