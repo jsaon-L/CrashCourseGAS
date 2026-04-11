@@ -713,9 +713,9 @@ void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 
 
 
-## 子弹/投射物制作思路
+## AI敌人 子弹/投射物制作思路
 
-1. 制作一个`GA_Attack`  需要网络执行策略`NetExecutionPolicy`为`SercerOnly` 因为SpawnActor函数应该在服务器调用(或者调用SpawnActor前加`HasAuthority`判断)
+1. 制作一个 `GA_Attack`  需要网络执行策略`NetExecutionPolicy`为`SercerOnly` 因为SpawnActor函数应该在服务器调用(或者调用SpawnActor前加`HasAuthority`判断)
 2. 制作一个 `Projectile Actor` 弹丸Actor的网络复制变量应该为`Replicates = True` 这样在服务器Spawn这个Actor的时候,所有客户端都会Spawn这个Actor,一般也可以在这里配置`Initial Life Span`让子弹生成几秒不管打没达到敌人都消失
 3. 制作一个 `GE_Projectile_Damage` 在`Modifiers->Modifier Magnitude->Manitude Calculation Type = Set By Caller`然后给Set by Caller选择一个tag`Set By Caller Magnitude->Data Tag`
 4. `GA_Attack` 可以播放攻击蒙太奇动画,同时在服务器SpawnActor(Projectile Actor) 同时可以传入`伤害数值`(Projectile Actor 的 Damage变量可以选择在生成时暴露引脚)
