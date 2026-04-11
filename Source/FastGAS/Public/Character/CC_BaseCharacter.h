@@ -49,6 +49,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ResetAttributes();
 
+
+	UFUNCTION(BlueprintCallable,BlueprintImplementableEvent)
+	void RotateToTarget(AActor* RotateTarget);
 	
 protected:
 	// Called when the game starts or when spawned

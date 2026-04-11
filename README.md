@@ -710,3 +710,9 @@ void UCC_AttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbac
 }
 ```
 * 监听事件 我们可以在击杀者的GA中使用`WaitGameplayEvent`节点来监听这个 `CCTags::Events::KillScored`tag,从Payload中拿到击杀了谁
+
+
+## 敌人小兵攻击,子弹投射物生成注意事项
+
+1. 生成子弹的GA_Attack 需要网络执行策略`NetExecutionPolicy`为`SercerOnly` 因为SpawnActor函数应该在服务器调用(或者调用SpawnActor前加`HasAuthority`判断)
+2. 弹丸Actor的网络复制变量应该为`Replicates = True`
