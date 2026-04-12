@@ -3,12 +3,16 @@
 
 #include "Utils/CC_BlueprintLibrary.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystem/CC_AttributeSet.h"
 #include "Character/CC_BaseCharacter.h"
+#include "GameplayTags/CCTags.h"
 #include "Kismet/GameplayStatics.h"
 
 //第一个参数是敌人的前向向量,第二个向量是敌人到攻击者的向量
 EHitDirection UCC_BlueprintLibrary::GetHitDirection(const FVector& TargetForward, const FVector& ToInstigator)
 {
+
 	const float Dot = FVector::DotProduct(TargetForward, ToInstigator);
 
 	if (Dot < -0.5f)
@@ -68,4 +72,28 @@ FClosestActorWithTagResult UCC_BlueprintLibrary::FindClosestActorWithTag(const U
 	Result.Distance = ClosestDistance;
 	
 	return Result;
+}
+
+void UCC_BlueprintLibrary::SendDamageEventToPlayer(AActor* Target, const TSubclassOf<UGameplayEffect>& DamageEffect,
+	const FGameplayEventData& Payload, const FGameplayTag& DataTag, float Damage)
+{
+	ACC_BaseCharacter* BaseCharacter = Cast<ACC_BaseCharacter>(Target);
+	if (!IsValid(BaseCharacter) || !BaseCharacter->IsAlive()) return;
+
+	UCC_AttributeSet* AttributeSet = Cast<UCC_AttributeSet>(BaseCharacter->GetAttributeSet()) ;
+	if (!IsValid(AttributeSet)) return;
+
+	const bool bLethal = AttributeSet->GetHealth() - Damage <=0;
+	const FGameplayTag EventTag = bLethal?CCTags::Events::Player::Death : CCTags::Events::Player::HitReact;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(BaseCharacter,EventTag,Payload);
+
+	UAbilitySystemComponent* TargetASC = BaseCharacter->GetAbilitySystemComponent();
+	if (!IsValid(TargetASC)) return;
+
+	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
+	FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(DamageEffect,1,EffectContextHandle);
+	
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle,DataTag,-Damage);
+	TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+	
 }

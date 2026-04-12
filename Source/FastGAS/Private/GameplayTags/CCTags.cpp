@@ -26,6 +26,16 @@ namespace CCTags
 	namespace Events
 	{
 		UE_DEFINE_GAMEPLAY_TAG_COMMENT(KillScored,"CCTags.Events.KillScored","击杀得分")
+
+
+		namespace Player
+		{
+			
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(HitReact,"CCTags.Events.Player.HitReact","玩家受到攻击")
+			UE_DEFINE_GAMEPLAY_TAG_COMMENT(Death,"CCTags.Events.Player.Death","玩家死亡")
+			
+		}
+		
 		namespace Enemy
 		{
 			UE_DEFINE_GAMEPLAY_TAG_COMMENT(EndAttack,"CCTags.Events.Enemy.EndAttack","敌人攻击结束")

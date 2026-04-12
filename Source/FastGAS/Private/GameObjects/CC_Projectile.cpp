@@ -8,6 +8,7 @@
 #include "Character/CC_PlayerCharacter.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "GameplayTags/CCTags.h"
+#include "Utils/CC_BlueprintLibrary.h"
 
 
 // Sets default values
@@ -35,14 +36,13 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (!IsValid(DamageEffect)) return;
 
-	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffect,1,EffectContextHandle);
+	FGameplayEventData Payload;
+	Payload.Instigator = GetOwner();
+	Payload.Target = PlayerCharacter;
 
-	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(EffectSpecHandle,CCTags::SetByCaller::Projectile,-Damage);
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
-
-	SpawnImpactEffects();
+	UCC_BlueprintLibrary::SendDamageEventToPlayer(PlayerCharacter,DamageEffect,Payload,CCTags::SetByCaller::Projectile,Damage);
 	
+	SpawnImpactEffects();
 	Destroy();
 }
 
