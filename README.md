@@ -573,7 +573,7 @@ void ACC_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 }
 ```
 
-## c++如何编写蓝图异步节点?
+## c++如何编写蓝图异步节点? 在Ability中分为 AbilityTask和AbilityAsync,前者跟随GA生命周期,只能在GA中用,后者需要手动关闭可以在任何地方用
 
 - 需要继承类`UBlueprintAsyncActionBase`
 - 定义一个或多个动态多播委托(异步输出引脚能用到)`DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnAttributeChanged, FGameplayAttribute, Attribute, float, NewValue, float, OldValue);`
@@ -759,3 +759,7 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 收到重叠HitResult 后怎么把HitResult使用SendGamePlayEvent 发给对应Ability呢,可以使用 ASC的MakeEffectContext函数创建一个 EffectContext,调用EffectContext->AddHitResult
 将EffectContext传递给 SendGamePlayEvent.Payload.ContextHandle参数
+
+
+
+
