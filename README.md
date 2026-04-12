@@ -753,3 +753,12 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 }
 
 ```
+
+## 近战敌人攻击判定如何制作?
+
+创建一个 `AnimNotifyState` 动画通知添加到动画蒙太奇中的通知中(小技巧,拖拽NotifyState的时候可以安装Shift键可以同时看到动画帧)
+然后选择一段范围,然后重写 `AnimNotifyState` `ReceivedNotifyTick`函数,就能在一段动画范围内接收动画通知了
+然后在ReceivedNotifyTick函数内可以通过MeshComp函数获取动画插槽,拿到武器的攻击点,进行重叠追踪了
+
+收到重叠HitResult 后怎么把HitResult使用SendGamePlayEvent 发给对应Ability呢,可以使用 ASC的MakeEffectContext函数创建一个 EffectContext,调用EffectContext->AddHitResult
+将EffectContext传递给 SendGamePlayEvent.Payload.ContextHandle参数
