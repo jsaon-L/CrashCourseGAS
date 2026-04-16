@@ -795,7 +795,7 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 ### 我们可以使用MMC(GameplayModMagnitudeCalculation)来实现
 
 1. 准备一个MMC,MMC的作用很简单,选择要捕获(依赖)的Attribute(以这里为例选择力量与敏捷),重写计算函数计算数值
-2. 准备一个GE,这种工作的GE要设置为`Infinite`与`Override`,GE的Modifiers->Attribute要选择要影响的属性(以这里为例选择攻击力属性)
+2. 准备一个GE,这种工作的GE要设置为`Infinite`,GE的Modifiers->Attribute要选择要影响的属性(以这里为例选择攻击力属性)
 3. 把MMC配置给GE
 4. 把GE应用到玩家或者敌人身上
 5. 此时我们修改力量或者敏捷属性,攻击力属性就会通过这个GE与MMC自动更新数值
@@ -815,6 +815,10 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 >法强:BaseAP与AP
 
 我们让HP依赖BaseHP与BaseAP,AP依赖BaseAP与BaseHP,达到法强增加血量,血量增加法强的目的,此时当我们BaseHP/BaseAP发生变化,就不会造成循环依赖了`MMC_HP 和 MMC_AP 都只依赖基础层，彼此之间没有任何关联`
+
+### 如果GE 对属性的修改为Add,那么基础属性变化后会触发二级属性重算,此时会給二级属性累加么?
+Attribute的值分为BaseValue与CurrentValue,重算时使用的是BaseValue重算,BaseValue只有立即生效的GE类型才会修改Base值
+
 
 
 # TODO:吸血功能怎么计算数值?
