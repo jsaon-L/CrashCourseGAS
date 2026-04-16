@@ -804,3 +804,19 @@ void ACC_Projectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 每个Attribute都有Aggregator（聚合器）,当我们的MMC捕获其他属性的时候会添加依赖,当基础属性数值变化就会自动触发MMC重算派生属性数值
 
+### 如果循环依赖了怎么办? 避免循环依赖!
+比如LOL中吸血鬼的被动技能`每40生命值加成给予吸血鬼1法术强度 每1法术强度给予弗拉基米尔1.4生命值`
+![吸血鬼被动](https://shp.qpic.cn/cfwebcap/0/6f210abf95ba10e181b80c7ee51733c4/0/?width=714&height=258)
+
+此时使用上面的MMC机制后会造成,法强->血量->法强->血量.....属性循环依赖导致无限循环计算
+此时我们可以将血量和法强分别拆成两个Attribute
+>血量:BaseHP与HP
+
+>法强:BaseAP与AP
+
+我们让HP依赖BaseHP与BaseAP,AP依赖BaseAP与BaseHP,达到法强增加血量,血量增加法强的目的,此时当我们BaseHP/BaseAP发生变化,就不会造成循环依赖了`MMC_HP 和 MMC_AP 都只依赖基础层，彼此之间没有任何关联`
+
+
+# TODO:吸血功能怎么计算数值?
+
+# TODO:两种自定义计算属性类区别,适用范围
